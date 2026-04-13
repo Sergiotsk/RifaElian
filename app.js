@@ -278,7 +278,7 @@
         <p class="sub">El <strong>${formatNum(n)}</strong> es tuyo, solo falta la transferencia</p>
         <div class="alias-box">
           <div class="label">Mandá $3.000 a</div>
-          <div class="alias">sefatek.mp</div>
+          <div class="alias">Alda.elian.mp</div>
         </div>
         <p class="hint">Cuando llegue la plata te lo marcamos como pagado ✓</p>
         <button class="primary" onclick="closeModal()" style="width: 100%;">Dale, ya transfiero 💸</button>
