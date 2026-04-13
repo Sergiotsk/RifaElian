@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎰 Rifa - ¡Probá tu suerte!🍀 y patea la malaria🦵💥</title>
+  <title>🎰 Rifa Elian - ¡Probá tu suerte!🍀</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;500;600;700&display=swap"
@@ -934,15 +934,15 @@
 <body>
   <div id="app">
     <div class="header">
-      <h1 id="main-title">🎰 RIFA VALEN</h1>
-      <p>¡Ayudalo a comprar sus guantes y pagar el examen de cinturón punta amarilla! 🥋</p>
+      <h1 id="main-title">🎰 RIFA ELIAN</h1>
+      <p>¡Ayudalo a cumplir su sueño! 🌟</p>
     </div>
 
     <!-- Photos -->
     <div class="photos-grid">
-      <div class="photo-card" id="photo-valen">
-        <img src="./VALEN.jpeg" alt="">
-        <div class="label">🥋 El Champion</div>
+      <div class="photo-card" id="photo-elian">
+        <img src="./ELIAN.jpg" alt="">
+        <div class="label">🌟 El Sueño</div>
       </div>
       <div class="photo-card" id="photo-prize">
         <img src="./Dinero.gif" alt="">
@@ -1047,29 +1047,30 @@
 
   <script>
     (function () {
-      const STORAGE_KEY = 'rifa_valen_2026';
+      const STORAGE_KEY = 'rifa_elian_2026';
       const ADMIN_PASS = 'RIFAFA2026';
       const TOTAL_NUMBERS = 20;
-      const TOTAL_START = 401;  // Números del 401 al 420
+      const TOTAL_START = 501;  // Números del 501 al 520
       const SORTEO_DATE = new Date('2026-04-29T20:00:00');
 
       // =====================================================
-      // 🔥 FIREBASE CONFIG - RIFA VALEN 2026
+      // 🔥 FIREBASE CONFIG - RIFA ELIAN 2026
       // =====================================================
       const firebaseConfig = {
-        apiKey: "AIzaSyCmpW2381o9I5ZfwV1a_2OjelLX3kwxmFA",
-        authDomain: "rifa-valen-2026.firebaseapp.com",
-        databaseURL: "https://rifa-valen-2026-default-rtdb.firebaseio.com",
-        projectId: "rifa-valen-2026",
-        storageBucket: "rifa-valen-2026.firebasestorage.app",
-        messagingSenderId: "593535772444",
-        appId: "1:593535772444:web:7f6cc537f410497d69bcd9"
+        apiKey: "AIzaSyC6YgTKYfhhSWwOLMFXyPz3iNoWhzx_sOU",
+        authDomain: "rifa-elian-2026.firebaseapp.com",
+        databaseURL: "https://rifa-elian-2026-default-rtdb.firebaseio.com",
+        projectId: "rifa-elian-2026",
+        storageBucket: "rifa-elian-2026.firebasestorage.app",
+        messagingSenderId: "710331810842",
+        appId: "1:710331810842:web:0493a6fa15c17f39707da3",
+        measurementId: "G-JC9HSZYF5X"
       };
 
       // Inicializar Firebase
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
-      const RIFA_REF = db.ref('rifa_valen_2026');
+      const RIFA_REF = db.ref('rifa_elian_2026');
 
       // Escuchar cambios en tiempo real
       RIFA_REF.on('value', (snapshot) => {
@@ -1125,7 +1126,7 @@
         "Ese es EL número 🔮",
         "¡Qué ojo! 👁️",
         "¡Tío, este es el winner! 🦁",
-        "Valen te lo va a agradecer 🙏",
+        "Elian te lo va a agradecer 🙏",
         "¡Familia unite! 💪"
       ];
 
@@ -1437,7 +1438,7 @@
 
       // Share button
       document.getElementById('share-btn').onclick = function () {
-        const text = '🎰 ¡Entrá a la rifa de Valen! 🥋\n\nAyudalo a pagar su examen de cinturón punta amarilla y sus guantes. Cada número sale $3.000 y hay $300.000 en premios!\n\n';
+        const text = '🎰 ¡Entrá a la rifa de Elian! 🥋\n\nAyudalo a cumplir su sueño. Cada número sale $3.000 y hay $300.000 en premios!\n\n';
         const url = window.location.href;
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text + url)}`;
         window.open(whatsappUrl, '_blank');
