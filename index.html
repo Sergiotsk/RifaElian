@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎰 Rifa - ¡Probá tu suerte!🍀 y patea la malaria🦵💥</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+  <style>
+    :root {
+      --primary: #E63946;
+      --primary-dark: #B92B34;
+      --secondary: #1D3557;
+      --accent: #F4A261;
+      --dark: #1a1a2e;
+      --light: #fafafa;
+      --success: #2A9D8F;
+      --warning: #E9C46A;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--dark);
+      min-height: 100vh;
+      padding: 1rem;
+      color: var(--light);
+      overflow-x: hidden;
+    }
+
+    /* Background pattern */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background:
+        radial-gradient(circle at 20% 80%, rgba(230, 57, 70, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(244, 162, 97, 0.1) 0%, transparent 50%),
+        repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255, 255, 255, 0.02) 35px, rgba(255, 255, 255, 0.02) 70px);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    #app {
+      max-width: 500px;
+      margin: 0 auto;
+      background: linear-gradient(145deg, #1e1e32 0%, #252542 100%);
+      border-radius: 24px;
+      padding: 1.5rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 36px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      user-select: none;
+      background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: #888;
+      margin-top: 0.5rem;
+    }
+
+    /* Photos */
+    .photos-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .photo-card {
+      background: #151520;
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      aspect-ratio: 1;
+      border: 2px dashed rgba(255, 255, 255, 0.1);
+      transition: all 0.3s;
+    }
+
+    .photo-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .photo-card img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .photo-card:hover img {
+      transform: scale(1.15);
+    }
+
+    .photo-card .label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+      padding: 2rem 0.75rem 0.5rem;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      z-index: 2;
+    }
+
+    /* Progress bar */
+    .progress-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .progress-header span {
+      font-size: 13px;
+      color: #888;
+    }
+
+    .progress-header .percent {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--success);
+    }
+
+    .progress-bar {
+      height: 12px;
+      background: #151520;
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: var(--progress, 0%);
+      background: linear-gradient(90deg, var(--success) 0%, #4ECDC4 100%);
+      border-radius: 6px;
+      transition: width 0.5s ease;
+    }
+
+    .progress-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% {
+        transform: translateX(-100%);
+      }
+
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+    /* Countdown */
+    .countdown-box {
+      background: linear-gradient(135deg, rgba(230, 57, 70, 0.2) 0%, rgba(244, 162, 97, 0.1) 100%);
+      border: 1px solid rgba(230, 57, 70, 0.3);
+      border-radius: 16px;
+      padding: 1rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .countdown-box .live-badge {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      animation: pulse 2s infinite;
+      margin-bottom: 0.75rem;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.6;
+      }
+    }
+
+    .countdown-box .date {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .countdown-timer {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .countdown-timer .unit {
+      background: #151520;
+      padding: 8px 12px;
+      border-radius: 8px;
+      min-width: 50px;
+    }
+
+    .countdown-timer .unit .num {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .countdown-timer .unit .label {
+      font-size: 10px;
+      color: #666;
+      text-transform: uppercase;
+    }
+
+    /* Price box */
+    .price-box {
+      background: linear-gradient(135deg, #1e1e32 0%, #252542 100%);
+      border: 1px solid rgba(244, 162, 97, 0.3);
+      border-radius: 16px;
+      padding: 1.25rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .price-box .label {
+      font-size: 13px;
+      color: #888;
+    }
+
+    .price-box .amount {
+      font-size: 32px;
+      font-weight: 700;
+      margin-top: 0.25rem;
+      color: var(--accent);
+    }
+
+    /* Prizes */
+    .prizes-box {
+      background: linear-gradient(135deg, rgba(42, 157, 143, 0.15) 0%, rgba(78, 205, 196, 0.1) 100%);
+      border: 1px solid rgba(42, 157, 143, 0.3);
+      border-radius: 16px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .prizes-box h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: var(--success);
+    }
+
+    .prizes-box .prize {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0.5rem 0;
+      font-size: 15px;
+    }
+
+    .prizes-box .prize .medal {
+      font-size: 20px;
+    }
+
+    .prizes-box .prize .amount {
+      font-weight: 700;
+      color: var(--accent);
+      margin-left: auto;
+    }
+
+    /* Instagram */
+    .instagram-box {
+      background: rgba(29, 53, 87, 0.3);
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 14px;
+    }
+
+    .instagram-box .icon {
+      font-size: 18px;
+    }
+
+    .instagram-box strong {
+      color: var(--accent);
+    }
+
+    /* Share button */
+    .share-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 1.5rem;
+      transition: all 0.2s;
+    }
+
+    .share-btn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 20px rgba(37, 211, 102, 0.3);
+    }
+
+    /* Hint */
+    .hint {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 1rem;
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .grid button {
+      position: relative;
+      aspect-ratio: 1;
+      font-size: 18px;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      background: #151520;
+      color: #aaa;
+    }
+
+    .grid button:hover:not(.reserved):not(.paid) {
+      transform: scale(1.1);
+      border-color: var(--accent);
+      color: white;
+      box-shadow: 0 4px 15px rgba(244, 162, 97, 0.3);
+    }
+
+    .grid button.reserved {
+      background: linear-gradient(135deg, #F4A261 0%, #E76F51 100%);
+      border-color: #F4A261;
+      color: #1a1a2e;
+    }
+
+    .grid button:hover::after {
+      content: attr(data-name);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e1e32;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 10;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .grid button.reserved:hover::after {
+      background: linear-gradient(135deg, #F4A261, #E76F51);
+      color: #1a1a2e;
+      border: none;
+    }
+
+    .grid button.paid {
+      background: linear-gradient(135deg, #2A9D8F 0%, #4ECDC4 100%);
+      border-color: #2A9D8F;
+      color: white;
+    }
+
+    .grid button.paid {
+      background: linear-gradient(135deg, #2A9D8F 0%, #4ECDC4 100%);
+      border-color: #2A9D8F;
+      color: white;
+    }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 1rem;
+    }
+
+    .legend span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 4px;
+    }
+
+    .legend .dot.libre {
+      background: #151520;
+      border: 1px solid #333;
+    }
+
+    .legend .dot.reservado {
+      background: linear-gradient(135deg, #F4A261, #E76F51);
+    }
+
+    .legend .dot.pagado {
+      background: linear-gradient(135deg, #2A9D8F, #4ECDC4);
+    }
+
+    /* Admin badge */
+    .admin-badge {
+      display: none;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .admin-badge span {
+      background: rgba(230, 57, 70, 0.2);
+      color: var(--primary);
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--primary);
+    }
+
+    /* Admin panel */
+    .admin-panel {
+      display: none;
+      background: #151520;
+      border-radius: 16px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(230, 57, 70, 0.3);
+    }
+
+    .admin-panel.show {
+      display: block;
+    }
+
+    .admin-panel h3 {
+      font-size: 14px;
+      color: var(--primary);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .admin-panel .close-admin {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .pending-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .pending-section {
+      margin-bottom: 0.5rem;
+    }
+
+    .pending-section-title {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pending-section-title .count {
+      background: #333;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+    }
+
+    .pending-section-title.reserved .count {
+      background: rgba(244, 162, 97, 0.3);
+      color: var(--accent);
+    }
+
+    .pending-section-title.paid .count {
+      background: rgba(42, 157, 143, 0.3);
+      color: var(--success);
+    }
+
+    .pending-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #1e1e32;
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .pending-item .num {
+      font-weight: 700;
+      color: var(--accent);
+      min-width: 30px;
+    }
+
+    .pending-item .name {
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .pending-item .status-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .pending-item .status-badge.reserved {
+      background: rgba(244, 162, 97, 0.2);
+      color: var(--accent);
+    }
+
+    .pending-item .status-badge.paid {
+      background: rgba(42, 157, 143, 0.2);
+      color: var(--success);
+    }
+
+    .pending-item .actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .pending-item .confirm-btn {
+      background: var(--success);
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .pending-item .cancel-btn {
+      background: #333;
+      color: #888;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .pending-item .cancel-btn:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .pending-item .confirm-btn:hover {
+      opacity: 0.9;
+    }
+
+    .no-pending {
+      color: #666;
+      font-size: 13px;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    /* Admin shortcut button */
+    .admin-shortcut {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      background: rgba(230, 57, 70, 0.2);
+      border: 1px solid var(--primary);
+      border-radius: 50%;
+      color: var(--primary);
+      font-size: 16px;
+      cursor: pointer;
+      opacity: 0.5;
+      transition: all 0.2s;
+      z-index: 50;
+    }
+
+    .admin-shortcut:hover {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 100;
+      padding: 1rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .modal-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(145deg, #1e1e32 0%, #252542 100%);
+      border-radius: 20px;
+      padding: 1.5rem;
+      width: 90%;
+      max-width: 360px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .modal input {
+      width: 100%;
+      padding: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      font-size: 16px;
+      text-align: center;
+      margin-bottom: 1rem;
+      background: #151520;
+      color: white;
+    }
+
+    .modal input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .modal input::placeholder {
+      color: #666;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .modal button {
+      flex: 1;
+      padding: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #151520;
+      color: #aaa;
+      transition: all 0.2s;
+    }
+
+    .modal button:hover {
+      background: #1e1e32;
+      color: white;
+    }
+
+    .modal button.primary {
+      background: linear-gradient(135deg, var(--accent) 0%, #E76F51 100%);
+      color: #1a1a2e;
+      border-color: var(--accent);
+    }
+
+    .modal button.reserved {
+      background: linear-gradient(135deg, #F4A261, #E76F51);
+      color: #1a1a2e;
+      border-color: #F4A261;
+    }
+
+    .modal button.paid {
+      background: linear-gradient(135deg, #2A9D8F, #4ECDC4);
+      color: white;
+      border-color: #2A9D8F;
+    }
+
+    .modal button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .modal-admin-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .alias-box {
+      background: #151520;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      border: 1px solid rgba(244, 162, 97, 0.3);
+    }
+
+    .alias-box .label {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .alias-box .alias {
+      font-size: 24px;
+      font-weight: 700;
+      margin-top: 0.25rem;
+      color: var(--accent);
+      font-family: 'Courier New', monospace;
+    }
+
+    .modal-center {
+      text-align: center;
+    }
+
+    .modal-center .icon {
+      font-size: 48px;
+      margin-bottom: 0.5rem;
+    }
+
+    .modal-center h3 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .modal-center .sub {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 1rem;
+    }
+
+    .modal-center .hint {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 1rem;
+    }
+
+    .modal-center .success {
+      color: var(--success);
+    }
+
+    .modal-center .gif {
+      width: 100%;
+      max-width: 180px;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+    }
+
+    /* Celebration overlay */
+    .celebration-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes bounce {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.08);
+      }
+    }
+
+    .celebration-overlay img {
+      max-width: 300px;
+      border-radius: 20px;
+      margin-bottom: 2rem;
+      animation: bounce 0.6s ease-in-out infinite;
+    }
+
+    .celebration-overlay p {
+      color: white;
+      font-size: 32px;
+      font-weight: 700;
+      text-align: center;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Confetti */
+    .confetti {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      top: -10px;
+      z-index: 300;
+      animation: confetti-fall 3s linear forwards;
+    }
+
+    @keyframes confetti-fall {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+
+    /* Roulette overlay */
+    .roulette-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .roulette-num {
+      font-size: 120px;
+      font-weight: 700;
+      color: var(--accent);
+      font-family: 'Bebas Neue', sans-serif;
+    }
+
+    .roulette-text {
+      color: #666;
+      font-size: 18px;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div class="header">
+      <h1 id="main-title">🎰 RIFA VALEN</h1>
+      <p>¡Ayudalo a comprar sus guantes y pagar el examen de cinturón punta amarilla! 🥋</p>
+    </div>
+
+    <!-- Photos -->
+    <div class="photos-grid">
+      <div class="photo-card" id="photo-valen">
+        <img src="./VALEN.jpeg" alt="">
+        <div class="label">🥋 El Champion</div>
+      </div>
+      <div class="photo-card" id="photo-prize">
+        <img src="./Dinero.gif" alt="">
+        <div class="label">🏆 El Premio</div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-section">
+      <div class="progress-header">
+        <span>Números vendidos</span>
+        <span class="percent" id="progress-percent">0%</span>
+      </div>
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <!-- Countdown -->
+    <div class="countdown-box">
+      <div class="live-badge">📺 EN VIVO</div>
+      <div class="date">Miércoles 29 de abril</div>
+      <div class="countdown-timer" id="countdown">
+        <div class="unit">
+          <div class="num" id="days">00</div>
+          <div class="label">Días</div>
+        </div>
+        <div class="unit">
+          <div class="num" id="hours">00</div>
+          <div class="label">Hrs</div>
+        </div>
+        <div class="unit">
+          <div class="num" id="mins">00</div>
+          <div class="label">Min</div>
+        </div>
+        <div class="unit">
+          <div class="num" id="secs">00</div>
+          <div class="label">Seg</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="price-box">
+      <div class="label">💸 Cada número sale</div>
+      <div class="amount">$3.000</div>
+    </div>
+
+    <div class="prizes-box">
+      <h3>🏆 PREMIOS</h3>
+      <div class="prize"><span class="medal">🥇</span> 1er puesto<span class="amount">$150.000</span></div>
+      <div class="prize"><span class="medal">🥈</span> 2do puesto<span class="amount">$100.000</span></div>
+      <div class="prize"><span class="medal">🥉</span> 3er puesto<span class="amount">$50.000</span></div>
+    </div>
+
+    <div class="instagram-box">
+      <span class="icon">📺</span> Sorteo por Instagram <a href="https://instagram.com/sabunnim_liliana" target="_blank"
+        style="color: var(--accent); text-decoration: none;"><strong>@sabunnim_liliana</strong></a>
+    </div>
+
+    <!-- Share button -->
+    <button class="share-btn" id="share-btn">
+      <span>📲</span> Compartir por WhatsApp
+    </button>
+
+    <p class="hint">👇 Tocá tu número de la suerte 👇</p>
+
+    <div class="grid" id="grid"></div>
+
+    <div class="legend">
+      <span><span class="dot libre"></span> Libre</span>
+      <span><span class="dot reservado"></span> Reservado</span>
+      <span><span class="dot pagado"></span> Pagado ✓</span>
+    </div>
+
+    <div class="admin-badge" id="admin-badge">
+      <span>🔐 Modo admin</span>
+    </div>
+  </div>
+
+  <!-- Admin Panel -->
+  <div class="admin-panel" id="admin-panel">
+    <h3>📋 Reservas pendientes ⨯<button class="close-admin" onclick="toggleAdminPanel()">×</button></h3>
+    <div class="pending-list" id="pending-list"></div>
+  </div>
+
+  <!-- Admin shortcut button -->
+  <button class="admin-shortcut" id="admin-shortcut" onclick="toggleAdminPanel()">⚙️</button>
+
+  <div class="modal" id="modal">
+    <div class="modal-content" id="modal-content"></div>
+  </div>
+
+  <div class="celebration-overlay" id="celebration">
+    <img id="celebration-gif" src="" alt="Celebración">
+    <p id="celebration-text"></p>
+  </div>
+
+  <div class="roulette-overlay" id="roulette">
+    <div class="roulette-num" id="roulette-num">00</div>
+    <div class="roulette-text">Buscando tu número...</div>
+  </div>
+
+  <audio id="sound-success" preload="auto"></audio>
+
+  <script>
+    (function () {
+      const STORAGE_KEY = 'rifa_valen_2026';
+      const ADMIN_PASS = 'RIFAFA2026';
+      const TOTAL_NUMBERS = 20;
+      const TOTAL_START = 401;  // Números del 401 al 420
+      const SORTEO_DATE = new Date('2026-04-29T20:00:00');
+
+      // =====================================================
+      // 🔥 FIREBASE CONFIG - RIFA VALEN 2026
+      // =====================================================
+      const firebaseConfig = {
+        apiKey: "AIzaSyCmpW2381o9I5ZfwV1a_2OjelLX3kwxmFA",
+        authDomain: "rifa-valen-2026.firebaseapp.com",
+        databaseURL: "https://rifa-valen-2026-default-rtdb.firebaseio.com",
+        projectId: "rifa-valen-2026",
+        storageBucket: "rifa-valen-2026.firebasestorage.app",
+        messagingSenderId: "593535772444",
+        appId: "1:593535772444:web:7f6cc537f410497d69bcd9"
+      };
+
+      // Inicializar Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+      const RIFA_REF = db.ref('rifa_valen_2026');
+
+      // Escuchar cambios en tiempo real
+      RIFA_REF.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data && data.numbers) {
+          state.numbers = data.numbers;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          render();
+        }
+      });
+
+      function saveToFirebase() {
+        RIFA_REF.set({ numbers: state.numbers, lastUpdate: Date.now() });
+      }
+
+      // =====================================================
+      // 🎨 CONFIGURACIÓN FÁCIL - CAMBIÁ ESTO COMO QUIERAS
+      // =====================================================
+
+      // 🔊 SONIDOS DE AGRADECIMIENTO GRACIOSOS (para kids)
+      const SOUNDS = [
+        'https://www.myinstants.com/media/sounds/gracias-me-gusta-el-dinero.mp3',
+        'https://www.myinstants.com/media/sounds/muchas-gracias.mp3',
+        'https://www.myinstants.com/media/sounds/gracias-mi-estimado.mp3',
+        'https://www.myinstants.com/media/sounds/thank-you-michael-scott.mp3',
+        'https://www.myinstants.com/media/sounds/cr7-muchas-gracias-aficion.mp3'
+      ];
+
+      // 🖼️ GIFS DE CELEBRACIÓN/MEMES (distintos por número)
+      const GIFS = [
+        'https://media.giphy.com/media/cdNSp4L5vCU7aQrYnV/giphy.gif',
+        'https://media.giphy.com/media/TdfyKrN7HGTIY/giphy.gif',
+        'https://media.giphy.com/media/IglQkzvuewsoD6E1Pj/giphy.gif',
+        'https://media.giphy.com/media/s2qXK8wAvkHTO/giphy.gif',
+        'https://media.giphy.com/media/o75ajIFH0QnQC3nCeD/giphy.gif',
+        'https://media.giphy.com/media/geslvCFM31sFW/giphy.gif',
+        'https://media.giphy.com/media/iJgoGwkqb1mmH1mES3/giphy.gif',
+        'https://media.giphy.com/media/VyB31XTqZNJhFRZNyl/giphy.gif',
+        'https://media.giphy.com/media/hZj44bR9FVI3K/giphy.gif'
+      ];
+
+      // 💬 MENSAJE DE CELEBRACIÓN
+      const CELEBRATION_TEXT = '¡GRACIAS CRACK! 🎉';
+
+      // =====================================================
+
+      const frases = [
+        "¡Ese número pica! 🔥",
+        "Buena elección 👀",
+        "Uff, número ganador 🏆",
+        "¡Te lo sentís! 🍀",
+        "Vamos con todo 💪",
+        "Ese es EL número 🔮",
+        "¡Qué ojo! 👁️",
+        "¡Tío, este es el winner! 🦁",
+        "Valen te lo va a agradecer 🙏",
+        "¡Familia unite! 💪"
+      ];
+
+      let state = { numbers: {}, adminMode: false };
+      let tapCount = 0;
+      let tapTimer = null;
+
+      // Inicializar elementos
+      document.getElementById('celebration-text').textContent = CELEBRATION_TEXT;
+
+      function playRandomSound() {
+        const sound = document.getElementById('sound-success');
+        const randomSound = SOUNDS[Math.floor(Math.random() * SOUNDS.length)];
+        sound.src = randomSound;
+        sound.currentTime = 0;
+        sound.play().catch(() => { });
+      }
+
+      function createConfetti() {
+        const colors = ['#E63946', '#F4A261', '#2A9D8F', '#E9C46A', '#fff'];
+        for (let i = 0; i < 50; i++) {
+          const confetti = document.createElement('div');
+          confetti.className = 'confetti';
+          confetti.style.left = Math.random() * 100 + 'vw';
+          confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+          confetti.style.animationDelay = Math.random() * 2 + 's';
+          confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+          document.body.appendChild(confetti);
+          setTimeout(() => confetti.remove(), 4000);
+        }
+      }
+
+      function showCelebration(n) {
+        const overlay = document.getElementById('celebration');
+        const gifIndex = (n - 1) % GIFS.length;
+        document.getElementById('celebration-gif').src = GIFS[gifIndex];
+
+        overlay.style.display = 'flex';
+        playRandomSound();
+        createConfetti();
+
+        setTimeout(() => {
+          overlay.style.display = 'none';
+        }, 3500);
+      }
+
+      function showRoulette(num, callback) {
+        const overlay = document.getElementById('roulette');
+        const numDisplay = document.getElementById('roulette-num');
+        overlay.style.display = 'flex';
+
+        let count = 0;
+        const interval = setInterval(() => {
+          const randomNum = Math.floor(Math.random() * TOTAL_NUMBERS) + 1;
+          numDisplay.textContent = formatNum(randomNum);
+          count++;
+          if (count > 15) {
+            clearInterval(interval);
+            numDisplay.textContent = formatNum(num);
+            setTimeout(() => {
+              overlay.style.display = 'none';
+              callback();
+            }, 500);
+          }
+        }, 100);
+      }
+
+      function loadState() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) state = JSON.parse(saved);
+        } catch (e) { }
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) { }
+        saveToFirebase();
+      }
+
+      function updateProgress() {
+        let total = 0;
+        let paid = 0;
+        for (let i = 1; i <= TOTAL_NUMBERS; i++) {
+          const num = state.numbers[i];
+          if (num && (num.status === 'reserved' || num.status === 'paid')) {
+            total++;
+            if (num.status === 'paid') paid++;
+          }
+        }
+        const percent = Math.round((total / TOTAL_NUMBERS) * 100);
+        document.getElementById('progress-bar').style.setProperty('--progress', percent + '%');
+        document.getElementById('progress-percent').textContent = percent + '%';
+      }
+
+      function updateCountdown() {
+        const now = new Date();
+        const diff = SORTEO_DATE - now;
+
+        if (diff <= 0) {
+          document.getElementById('days').textContent = '00';
+          document.getElementById('hours').textContent = '00';
+          document.getElementById('mins').textContent = '00';
+          document.getElementById('secs').textContent = '00';
+          return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+        document.getElementById('days').textContent = String(days).padStart(2, '0');
+        document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+        document.getElementById('mins').textContent = String(mins).padStart(2, '0');
+        document.getElementById('secs').textContent = String(secs).padStart(2, '0');
+      }
+
+      function formatNum(i) {
+        return String(TOTAL_START + i - 1).padStart(3, '0');
+      }
+
+      function render() {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+
+        for (let i = 1; i <= TOTAL_NUMBERS; i++) {
+          const num = state.numbers[i] || { status: 'available' };
+          const btn = document.createElement('button');
+          btn.textContent = formatNum(i);
+
+          if (num.status === 'reserved') btn.className = 'reserved';
+          else if (num.status === 'paid') btn.className = 'paid';
+
+          // Agregar nombre al hover si existe
+          if (num.name) {
+            btn.setAttribute('data-name', num.name);
+          }
+
+          btn.onclick = () => handleClick(i);
+          grid.appendChild(btn);
+        }
+
+        document.getElementById('admin-badge').style.display = state.adminMode ? 'block' : 'none';
+        updateProgress();
+      }
+
+      function handleClick(n) {
+        const num = state.numbers[n] || { status: 'available' };
+
+        if (state.adminMode) {
+          showAdminModal(n, num);
+        } else {
+          if (num.status === 'available') {
+            showRoulette(n, () => showReserveModal(n));
+          } else if (num.status === 'reserved') {
+            showPaymentModal(n, num);
+          } else {
+            showInfoModal(n, num);
+          }
+        }
+      }
+
+      function randomFrase() {
+        return frases[Math.floor(Math.random() * frases.length)];
+      }
+
+      function showReserveModal(n) {
+        const content = document.getElementById('modal-content');
+        content.innerHTML = `
+          <div class="modal-center">
+            <div class="icon">🎟️</div>
+            <h3>Número ${formatNum(n)}</h3>
+            <p class="sub">${randomFrase()}</p>
+          </div>
+          <input type="text" id="inp-name" placeholder="¿A nombre de quién va?">
+          <div class="modal-buttons">
+            <button onclick="closeModal()">Nah, paso</button>
+            <button class="primary" onclick="confirmReserve(${n})">¡Lo quiero!</button>
+          </div>
+        `;
+        document.getElementById('modal').style.display = 'block';
+        setTimeout(() => document.getElementById('inp-name').focus(), 100);
+      }
+
+      window.confirmReserve = function (n) {
+        const name = document.getElementById('inp-name').value.trim();
+
+        if (!name) {
+          alert('¡Poné tu nombre así sabemos quién gana!');
+          return;
+        }
+
+        state.numbers[n] = { status: 'reserved', name };
+        saveState();
+        render();
+        closeModal();
+
+        showCelebration(n);
+
+        setTimeout(() => {
+          showPaymentModal(n, state.numbers[n]);
+        }, 3500);
+      };
+
+      function showPaymentModal(n, num) {
+        const content = document.getElementById('modal-content');
+        const gifIndex = (n - 1) % GIFS.length;
+        content.innerHTML = `
+          <div class="modal-center">
+            <img class="gif" src="${GIFS[gifIndex]}" alt="Gracias">
+            <h3>¡Listo ${num.name}!</h3>
+            <p class="sub">El <strong>${formatNum(n)}</strong> es tuyo, solo falta la transferencia</p>
+            <div class="alias-box">
+              <div class="label">Mandá $3.000 a</div>
+              <div class="alias">sefatek.mp</div>
+            </div>
+            <p class="hint">Cuando llegue la plata te lo marcamos como pagado ✓</p>
+            <button class="primary" onclick="closeModal()" style="width: 100%;">Dale, ya transfiero 💸</button>
+          </div>
+        `;
+        document.getElementById('modal').style.display = 'block';
+      }
+
+      function showInfoModal(n, num) {
+        const content = document.getElementById('modal-content');
+        content.innerHTML = `
+          <div class="modal-center">
+            <div class="icon">✅</div>
+            <h3>Número ${formatNum(n)}</h3>
+            <p class="sub success">Ya está pagado por <strong>${num.name}</strong></p>
+            <p class="hint">Elegí otro que queden 🍀</p>
+            <button onclick="closeModal()" style="width: 100%;">Ver otros números</button>
+          </div>
+        `;
+        document.getElementById('modal').style.display = 'block';
+      }
+
+      function showAdminModal(n, num) {
+        const content = document.getElementById('modal-content');
+        const statusText = num.status === 'available' ? 'Libre' : num.status === 'reserved' ? 'Reservado' : 'Pagado';
+        const info = num.name ? `<p style="font-size: 15px; margin-bottom: 1rem;">👤 <strong>${num.name}</strong></p>` : '<p style="font-size: 14px; color: #999; margin-bottom: 1rem;">Sin reserva todavía</p>';
+
+        content.innerHTML = `
+          <div class="modal-center">
+            <h3>🔧 Número ${formatNum(n)}</h3>
+            <p class="sub">Estado: ${statusText}</p>
+            ${info}
+          </div>
+          <div class="modal-admin-buttons">
+            <button onclick="setStatus(${n}, 'available')" ${num.status === 'available' ? 'disabled' : ''}>Liberar número</button>
+            <button class="reserved" onclick="setStatus(${n}, 'reserved')" ${num.status === 'reserved' ? 'disabled' : ''}>Marcar reservado</button>
+            <button class="paid" onclick="setStatus(${n}, 'paid')" ${num.status === 'paid' ? 'disabled' : ''}>✓ Marcar pagado</button>
+            <button onclick="closeModal()" style="margin-top: 0.5rem;">Cerrar</button>
+          </div>
+        `;
+        document.getElementById('modal').style.display = 'block';
+      }
+
+      window.setStatus = function (n, status) {
+        if (!state.numbers[n]) state.numbers[n] = {};
+        state.numbers[n].status = status;
+        if (status === 'available') {
+          delete state.numbers[n].name;
+        }
+        saveState();
+        render();
+        closeModal();
+      };
+
+      window.closeModal = function () {
+        document.getElementById('modal').style.display = 'none';
+      };
+
+      document.getElementById('modal').onclick = function (e) {
+        if (e.target === this) closeModal();
+      };
+
+      document.getElementById('celebration').onclick = function () {
+        this.style.display = 'none';
+      };
+
+      // Admin mode - tap title 3 times
+      document.getElementById('main-title').onclick = function () {
+        tapCount++;
+        clearTimeout(tapTimer);
+        tapTimer = setTimeout(() => { tapCount = 0; }, 1000);
+
+        if (tapCount >= 3) {
+          tapCount = 0;
+          if (state.adminMode) {
+            state.adminMode = false;
+            document.getElementById('admin-panel').classList.remove('show');
+            document.getElementById('admin-shortcut').style.display = 'block';
+            render();
+          } else {
+            const pass = prompt('🔐 Clave secreta:');
+            if (pass === ADMIN_PASS) {
+              state.adminMode = true;
+              document.getElementById('admin-panel').classList.add('show');
+              document.getElementById('admin-shortcut').style.display = 'none';
+              renderPendingList();
+              render();
+            }
+          }
+        }
+      };
+
+      // Share button
+      document.getElementById('share-btn').onclick = function () {
+        const text = '🎰 ¡Entrá a la rifa de Valen! 🥋\n\nAyudalo a pagar su examen de cinturón punta amarilla y sus guantes. Cada número sale $3.000 y hay $300.000 en premios!\n\n';
+        const url = window.location.href;
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text + url)}`;
+        window.open(whatsappUrl, '_blank');
+      };
+
+      // Admin panel
+      function toggleAdminPanel() {
+        const panel = document.getElementById('admin-panel');
+        const shortcut = document.getElementById('admin-shortcut');
+
+        if (panel.classList.contains('show')) {
+          panel.classList.remove('show');
+          shortcut.style.display = 'block';
+        } else {
+          const pass = prompt('🔐 Clave admin:');
+          if (pass === ADMIN_PASS) {
+            panel.classList.add('show');
+            shortcut.style.display = 'none';
+            renderPendingList();
+          } else {
+            alert('Clave incorrecta');
+          }
+        }
+      }
+
+      window.toggleAdminPanel = toggleAdminPanel;
+
+      function renderPendingList() {
+        const list = document.getElementById('pending-list');
+        const reserved = [];
+        const paid = [];
+
+        for (let i = 1; i <= TOTAL_NUMBERS; i++) {
+          const num = state.numbers[i];
+          if (num && num.status === 'reserved') {
+            reserved.push({ num: i, name: num.name });
+          } else if (num && num.status === 'paid') {
+            paid.push({ num: i, name: num.name });
+          }
+        }
+
+        if (reserved.length === 0 && paid.length === 0) {
+          list.innerHTML = '<div class="no-pending">No hay reservas aún 📭</div>';
+          return;
+        }
+
+        let html = '';
+
+        if (reserved.length > 0) {
+          html += `
+            <div class="pending-section">
+              <div class="pending-section-title reserved">
+                ⏳ Reservas pendientes <span class="count">${reserved.length}</span>
+              </div>
+              ${reserved.map(p => `
+                <div class="pending-item">
+                  <span class="num">${formatNum(p.num)}</span>
+                  <span class="name">${p.name}</span>
+                  <span class="status-badge reserved">esperando</span>
+                  <div class="actions">
+                    <button class="confirm-btn" onclick="confirmPayment(${p.num})">✓ Confirmar</button>
+                    <button class="cancel-btn" onclick="cancelReservation(${p.num})">✕ Cancelar</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+
+        if (paid.length > 0) {
+          html += `
+            <div class="pending-section">
+              <div class="pending-section-title paid">
+                ✅ Pagados <span class="count">${paid.length}</span>
+              </div>
+              ${paid.map(p => `
+                <div class="pending-item">
+                  <span class="num">${formatNum(p.num)}</span>
+                  <span class="name">${p.name}</span>
+                  <span class="status-badge paid">pagado</span>
+                  <div class="actions">
+                    <button class="cancel-btn" onclick="cancelReservation(${p.num})">✕ Cancelar</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+
+        list.innerHTML = html;
+      }
+
+      window.confirmPayment = function (n) {
+        if (!state.numbers[n]) return;
+        state.numbers[n].status = 'paid';
+        saveState();
+        render();
+        renderPendingList();
+      };
+
+      window.cancelReservation = function (n) {
+        const numData = state.numbers[n];
+
+        if (!numData) {
+          alert('Error: número no encontrado en los datos');
+          return;
+        }
+
+        const confirmText = prompt(`¿Cancelar número ${formatNum(n)} de ${numData.name}?\n\nEstado actual: ${numData.status}\n\nEscribí "CANCELAR" para confirmar:`);
+
+        if (confirmText === 'CANCELAR') {
+          delete state.numbers[n];
+          saveState();
+          render();
+          renderPendingList();
+          alert(`Número ${formatNum(n)} cancelado y liberado ✓`);
+        } else if (confirmText !== null && confirmText !== 'CANCELAR') {
+          alert('Texto incorrecto. Escribí "CANCELAR" para confirmar la cancelación.');
+        }
+      };
+
+      // Initialize
+      loadState();
+      render();
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+    })();
+  </script>
+</body>
+
+</html>
